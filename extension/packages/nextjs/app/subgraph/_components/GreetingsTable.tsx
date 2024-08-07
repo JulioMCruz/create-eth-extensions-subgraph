@@ -2,17 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { Address } from "~~/components/scaffold-eth";
-import { GetGreetingsDocument,execute } from "~~/.graphclient";
+
+let GetGreetingsDocument: any, execute: any;
+try {
+  ({ GetGreetingsDocument, execute } = require("~~/.graphclient"));
+} catch (err) {
+  console.warn("Graph client not found, skipping data fetch.");
+}
 
 const GreetingsTable = () => {
-
-  const [greetingsData, setGreetingsData] = useState(null);
+  const [greetingsData, setGreetingsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]: any = useState(null);
-
+  const [error, setError] = useState<any>(null);
 
   useEffect(() => {
-    const getData = async () => {
+    const fetchData = async () => {
+      if (!execute || !GetGreetingsDocument) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data: result } = await execute(GetGreetingsDocument, {});
         setGreetingsData(result);
@@ -24,12 +33,11 @@ const GreetingsTable = () => {
       }
     };
 
-    getData();
+    fetchData();
   }, []);
 
-  // Subgraph maybe not yet configured
   if (error) {
-    return <></>;
+    return null;
   }
 
   return (
@@ -44,17 +52,15 @@ const GreetingsTable = () => {
             </tr>
           </thead>
           <tbody>
-          {(greetingsData as any)?.greetings?.map((greeting: any, index: number) => {
-              return (
-                <tr key={greeting.id}>
-                  <th>{index + 1}</th>
-                  <td>
-                    <Address address={greeting?.sender?.address} />
-                  </td>
-                  <td>{greeting.greeting}</td>
-                </tr>
-              );
-            })}
+            {greetingsData?.greetings?.map((greeting: any, index: number) => (
+              <tr key={greeting.id}>
+                <th>{index + 1}</th>
+                <td>
+                  <Address address={greeting?.sender?.address} />
+                </td>
+                <td>{greeting.greeting}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
