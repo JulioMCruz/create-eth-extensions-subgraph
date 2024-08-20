@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "client": "graphclient build"
+  },
   "dependencies": {
     "graphql": "~16.8.1"
   },
